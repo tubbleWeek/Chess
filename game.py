@@ -1,6 +1,6 @@
 import chess
 import chess.engine
-from alpha_beta import stockFish
+from alpha_beta.stockFish import alpha_beta_pruning
 
 def evaluate_board(board):
     """
