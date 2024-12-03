@@ -33,7 +33,7 @@ def play_human_vs_ai():
                 print("Invalid move. Try again.")
         else:
             # AI plays
-            _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), True, evaluate_board)
+            _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), False, evaluate_board)
             board.push(ai_move)
             print(f"AI plays: {ai_move}")
     print("Game Over!")
