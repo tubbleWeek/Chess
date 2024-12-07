@@ -2,6 +2,12 @@ import chess
 import chess.engine
 from alpha_beta.stockFish import alpha_beta_pruning
 
+def evaluate(board):
+    """Simple evaluation function for alpha-beta pruning."""
+    if board.is_checkmate():
+        return 1000 if board.turn == chess.BLACK else -1000
+    return len(list(board.legal_moves)) if board.turn == chess.WHITE else -len(list(board.legal_moves))
+
 def evaluate_board(board):
     """
     Simple evaluation function. Assigns material points.
@@ -50,7 +56,7 @@ def play_ai_vs_ai(engine_path):
         print(board)
         if board.turn:
             # Alpha-beta AI's turn
-            _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), True, evaluate_board)
+            _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), True, evaluate)
             board.push(ai_move)
             print(f"Alpha-Beta AI plays: {ai_move}")
         else:
