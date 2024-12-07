@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./r_learning",
+        "./monte_carlo",
+        "./alpha_beta"
+    ]
+}
