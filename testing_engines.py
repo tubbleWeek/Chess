@@ -1,9 +1,17 @@
 import chess
 import importlib
+from IPython.display import display, SVG
 from alpha_beta import stockFish
+import logging
 from monte_carlo import mtcs
-from q_learn import select_move, q_network, board_to_tensor
+from r_learning.q_learn import select_move, q_network, board_to_tensor
 
+logging.basicConfig(
+    filename="chess_game_log.txt",
+    filemode="w",
+    format="%(asctime)s - %(message)s",
+    level=logging.INFO,
+)
 
 def evaluate(board):
     """Simple evaluation function for alpha-beta pruning."""
@@ -25,21 +33,26 @@ def play_game(engine1, engine2, max_moves=100):
     turn = 0
 
     print("Starting new game...")
+    logging.info("Starting new game...")
     while not board.is_game_over() and board.fullmove_number <= max_moves:
-        print(board)
+        # print(board)
+        # display(SVG(chess.svg.board(board)))  # Final board state
         print(f"\nTurn {board.fullmove_number}: {'White' if board.turn else 'Black'} to move.")
 
         move = engines[turn % 2](board)
         if move is None:
             print("No legal moves available!")
+            logging.info("No legal moves available!")
             break
 
         print(f"Engine {'1' if turn % 2 == 0 else '2'} plays: {move}")
         board.push(move)
         turn += 1
-
-    print(board)
+    # display(SVG(chess.svg.board(board)))  # Final board state
+    # print(board)
     print(f"Game Over. Result: {board.result()}")
+    logging.info(f"Final Board {board}")
+    logging.info(f"Game Over. Result: {board.result()}")
     return board.result()
 
 
