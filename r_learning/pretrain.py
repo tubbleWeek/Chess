@@ -4,11 +4,11 @@ import torch
 from q_learn import ChessQNetwork, board_to_tensor
 
 # Pretraining parameters
-PRETRAIN_EPOCHS = 10
+PRETRAIN_EPOCHS = 100
 LEARNING_RATE = 1e-3
 DISCOUNT_FACTOR = 0.99
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+DEVICE =  'cuda'
+#  if torch.cuda.is_available() else "cpu"
 # Initialize Q-network and optimizer
 pretrain_q_network = ChessQNetwork().to(DEVICE)
 optimizer = torch.optim.Adam(pretrain_q_network.parameters(), lr=LEARNING_RATE)
@@ -20,6 +20,7 @@ def pretrain_model(dataset_path):
     :param dataset_path: Path to the chess dataset CSV file.
     """
     # Load dataset
+    print("skibidi printer")
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
 
