@@ -19,6 +19,75 @@ pretrain_q_network = ChessQNetwork().to(DEVICE)
 optimizer = torch.optim.Adam(pretrain_q_network.parameters(), lr=LEARNING_RATE)
 loss_fn = torch.nn.MSELoss()
 
+def evaluate_board(board):
+    """
+    Combined heuristic function for evaluating a chess position.
+    :param board: chess.Board object representing the current position.
+    :return: Evaluation score (positive for White's advantage, negative for Black's).
+    """
+    # Material values
+    piece_values = {
+        chess.PAWN: 1,
+        chess.KNIGHT: 3,
+        chess.BISHOP: 3,
+        chess.ROOK: 5,
+        chess.QUEEN: 9,
+        chess.KING: 0  # King value is handled separately (e.g., king safety).
+    }
+
+    # Piece-square tables (simplified example for pawns)
+    PAWN_TABLE = [
+        0,  0,  0,  0,  0,  0,  0,  0,
+        5, 10, 10,-20,-20, 10, 10,  5,
+        5, -5,-10,  0,  0,-10, -5,  5,
+        0,  0,  0, 20, 20,  0,  0,  0,
+        5,  5, 10, 25, 25, 10,  5,  5,
+       10, 10, 20, 30, 30, 20, 10, 10,
+       50, 50, 50, 50, 50, 50, 50, 50,
+        0,  0,  0,  0,  0,  0,  0,  0
+    ]
+
+    # Initialize score
+    score = 0
+
+    # Material evaluation
+    for piece_type in piece_values.keys():
+        # Count pieces for both sides
+        white_pieces = len(board.pieces(piece_type, chess.WHITE))
+        black_pieces = len(board.pieces(piece_type, chess.BLACK))
+        score += piece_values[piece_type] * (white_pieces - black_pieces)
+
+    # Positional evaluation (piece-square tables for pawns as an example)
+    for square in board.pieces(chess.PAWN, chess.WHITE):
+        score += PAWN_TABLE[square]
+    for square in board.pieces(chess.PAWN, chess.BLACK):
+        score -= PAWN_TABLE[chess.square_mirror(square)]  # Mirror for Black's pawns
+
+    # Mobility evaluation
+    white_mobility = len(list(board.legal_moves))
+    board.turn = not board.turn  # Switch to Black
+    black_mobility = len(list(board.legal_moves))
+    board.turn = not board.turn  # Switch back to White
+    score += 0.1 * (white_mobility - black_mobility)
+
+    # King safety (penalize exposed kings)
+    if not board.is_checkmate():
+        white_king_safety = len(board.attackers(chess.BLACK, board.king(chess.WHITE)))
+        black_king_safety = len(board.attackers(chess.WHITE, board.king(chess.BLACK)))
+        score -= 0.3 * white_king_safety
+        score += 0.3 * black_king_safety
+
+    # Passed pawns (bonus for pawns that can promote without enemy pawns blocking)
+    for square in board.pieces(chess.PAWN, chess.WHITE):
+        if not any(board.pieces(chess.PAWN, chess.BLACK) & chess.SquareSet.ray(square, chess.H8)):
+            score += 0.5
+    for square in board.pieces(chess.PAWN, chess.BLACK):
+        if not any(board.pieces(chess.PAWN, chess.WHITE) & chess.SquareSet.ray(square, chess.A1)):
+            score -= 0.5
+
+    return score
+
+
 def train_model_puzzle(dataset_path):
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
@@ -139,7 +208,7 @@ def train_model_openings(dataset_path):
 
             except Exception as e:
                 print(f"Skipping game at index {idx} due to error: {e}")
-                
+
         if (epoch + 1) % 5 == 0 or epoch == PRETRAIN_EPOCHS - 1:
             torch.save(pretrain_q_network.state_dict(), f"opening_model_epoch_{epoch+1}.pth")
         print(f"Epoch {epoch + 1} completed. Average loss: {total_loss / len(data):.4f}")
@@ -155,33 +224,37 @@ def train_model_games(dataset_path):
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
 
+    pretrain_q_network = ChessQNetwork().to(DEVICE)
+    pretrain_q_network.load_state_dict(torch.load("opening_learning_model.pth"))
+
     for epoch in range(PRETRAIN_EPOCHS):
-        print(f"Epoch {epoch + 1}/{PRETRAIN_EPOCHS}")
         total_loss = 0
+
         for idx, game in data.iterrows():
             try:
-                moves = game["moves"].split()  # Get the sequence of shorthand moves
-                winner = game["winner"]  # "white", "black", or "draw"
-                reward = 1 if winner == "white" else -1 if winner == "black" else 0
+                moves = game["moves"].split()  # Get the sequence of UCI moves
+                board = chess.Board()  # Initialize the board
 
-                # Reconstruct the game
-                board = chess.Board()
                 states, next_states, rewards, dones = [], [], [], []
 
+                # Iterate over the moves in the game
                 for move in moves:
                     if board.is_game_over():
                         break
 
-                    # Convert shorthand to UCI using `parse_san`
-                    uci_move = move
-
-                    # Record the state before the move
+                    # Record the current state
                     states.append(board_to_tensor(board).to(DEVICE))
-                    rewards.append(reward if board.turn == chess.WHITE else -reward)
-
-                    # Push the move to the board
-                    board.push_uci(uci_move)
+                    # Apply the move
+                    board.push_uci(move)
+                    # Record the next state
                     next_states.append(board_to_tensor(board).to(DEVICE))
+
+                    # Compute heuristic rewards (difference between state evaluations)
+                    current_heuristic = evaluate_board(board)  # Evaluate after the move
+                    previous_heuristic = evaluate_board(board.copy(stack=False))
+                    rewards.append(current_heuristic - previous_heuristic)
+
+                    # Record whether the game is over
                     dones.append(board.is_game_over())
 
                 # Train the Q-network on this game's data
@@ -210,15 +283,15 @@ def train_model_games(dataset_path):
                     total_loss += loss.item()
 
             except Exception as e:
-                # Log and skip any malformed games/moves
-                print(f"Skipping game due to error: {e}")
-        torch.save(pretrain_q_network.state_dict(), "q_learning_model"+ f"{epoch+1}" +".pth")
+                print(f"Skipping game {idx} due to error: {e}")
+
+        # Save the model after each epoch
+        torch.save(pretrain_q_network.state_dict(), "q_learning_model_epoch_" + f"{epoch+1}.pth")
         print(f"Epoch {epoch + 1} completed. Average loss: {total_loss / len(data):.4f}")
 
-    # Save the trained model
+    # Save the final trained model
     torch.save(pretrain_q_network.state_dict(), "q_learning_model.pth")
     print("Model saved as 'q_learning_model.pth'")
-
 
 if __name__ == "__main__":
     dataset_path = "./chess_data/games.csv"
