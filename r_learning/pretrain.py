@@ -3,6 +3,10 @@ import chess
 import torch
 from q_learn import ChessQNetwork, board_to_tensor
 
+# datasets
+OPENING_DATASET = "./chess_data/filtered_openings.csv"
+PUZZLE_DATASET = "./chess_data/filtered_chess_puzzle.csv"
+
 # Pretraining parameters
 PRETRAIN_EPOCHS = 10
 LEARNING_RATE = 1e-3
@@ -14,23 +18,86 @@ pretrain_q_network = ChessQNetwork().to(DEVICE)
 optimizer = torch.optim.Adam(pretrain_q_network.parameters(), lr=LEARNING_RATE)
 loss_fn = torch.nn.MSELoss()
 
-def pretrain_model(dataset_path):
+def train_model_puzzle(dataset_path):
+    data = pd.read_csv(dataset_path)
+    print("Dataset loaded. Number of games:", len(data))
+    for epoch in range(PRETRAIN_EPOCHS):
+        total_loss = 0  # Initialize total loss for the epoch
+        for idx, game in data.iterrows():
+            try:
+                # Initialize board from FEN
+                board = chess.Board(game["FEN"])
+                moves = game["Moves"].split()
+                reward = 1  # Reward for solving the puzzle
+
+                states, next_states, rewards = [], [], []
+                for i, move in enumerate(moves):
+                    if board.is_game_over():
+                        break
+
+                    try:
+                        # Convert shorthand to UCI
+                        uci_move = board.parse_san(move).uci()
+                    except ValueError:
+                        print(f"Invalid move {move}. Skipping game.")
+                        break
+
+                    # Record the state and rewards
+                    states.append(board_to_tensor(board).to(DEVICE))
+                    rewards.append(reward if i > 0 else -reward)  # Penalize the starting state
+
+                    # Push the move to the board
+                    board.push_uci(uci_move)
+                    next_states.append(board_to_tensor(board).to(DEVICE))
+
+                # Train the Q-network on this game's data
+                for i in range(len(states)):
+                    state = states[i]
+                    next_state = next_states[i]
+                    reward = rewards[i]
+
+                    # Compute Q-value target
+                    with torch.no_grad():
+                        target_q_value = reward
+                        if i < len(states) - 1:  # No next state for the last move
+                            next_q_value = pretrain_q_network(next_state).item()
+                            target_q_value += DISCOUNT_FACTOR * next_q_value
+
+                    # Forward pass
+                    predicted_q_value = pretrain_q_network(state)
+                    loss = loss_fn(predicted_q_value, torch.tensor([target_q_value], dtype=torch.float32).to(DEVICE))
+
+                    # Backward pass
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+
+                    total_loss += loss.item()
+
+            except Exception as e:
+                print(f"Skipping game due to error: {e}")
+
+        torch.save(pretrain_q_network.state_dict(), "puzzle_model_"+ f"{epoch+1}" +".pth")
+        print(f"Epoch {epoch + 1} completed. Average loss: {total_loss / len(data):.4f}")
+        
+
+def train_model_openings(dataset_path):
+    data = pd.read_csv(dataset_path)
+    print("Dataset loaded. Number of games:", len(data))
+
+def train_model_games(dataset_path):
     """
     Pretrain the Q-learning model using a chess dataset.
     :param dataset_path: Path to the chess dataset CSV file.
     """
     # Load dataset
-    puzzle_data = pd.read_csv()
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
 
     for epoch in range(PRETRAIN_EPOCHS):
         print(f"Epoch {epoch + 1}/{PRETRAIN_EPOCHS}")
         total_loss = 0
-
         for idx, game in data.iterrows():
-            if idx == 1000:
-                break
             try:
                 moves = game["moves"].split()  # Get the sequence of shorthand moves
                 winner = game["winner"]  # "white", "black", or "draw"
@@ -84,14 +151,15 @@ def pretrain_model(dataset_path):
             except Exception as e:
                 # Log and skip any malformed games/moves
                 print(f"Skipping game due to error: {e}")
-        torch.save(pretrain_q_network.state_dict(), "q_learning_model_cuda"+ f"{epoch+1}" +".pth")
+        torch.save(pretrain_q_network.state_dict(), "q_learning_model"+ f"{epoch+1}" +".pth")
         print(f"Epoch {epoch + 1} completed. Average loss: {total_loss / len(data):.4f}")
 
     # Save the trained model
-    torch.save(pretrain_q_network.state_dict(), "q_learning_model_cuda.pth")
-    print("Model saved as 'q_learning_model_cuda.pth'")
+    torch.save(pretrain_q_network.state_dict(), "q_learning_model.pth")
+    print("Model saved as 'q_learning_model.pth'")
 
 
 if __name__ == "__main__":
     dataset_path = "./chess_data/games.csv"
-    pretrain_model(dataset_path)
+    train_model_puzzle(PUZZLE_DATASET)
+    # train_model_games(dataset_path)
