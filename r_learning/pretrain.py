@@ -20,7 +20,7 @@ def pretrain_model(dataset_path):
     :param dataset_path: Path to the chess dataset CSV file.
     """
     # Load dataset
-    print("skibidi printer")
+    puzzle_data = pd.read_csv()
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
 
