@@ -1,6 +1,7 @@
 import chess
 import importlib
-from IPython.display import display, SVG
+import torch
+# from IPython.display import display, SVG
 from alpha_beta import stockFish
 import logging
 from monte_carlo import mtcs
@@ -12,6 +13,11 @@ logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
 )
+def evaluate_board(board):
+    """
+    Simple evaluation function. Assigns material points.
+    """
+    
 
 def evaluate(board):
     """Simple evaluation function for alpha-beta pruning."""
@@ -70,16 +76,17 @@ def mcts_engine(board):
 
 def q_learning_engine(board):
     """Q-learning engine."""
-    return select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+    model = torch.load('./r_learning/holder/q_learning_model_cuda.pth')
+    return model.select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
 
 
 if __name__ == "__main__":
     # Matchups: StockFish vs MCTS, StockFish vs Q-learning, MCTS vs Q-learning
-    print("Match 1: Alpha-Beta Pruning vs MCTS")
-    play_game(alpha_beta_engine, mcts_engine)
+    # print("Match 1: Alpha-Beta Pruning vs MCTS")
+    # play_game(alpha_beta_engine, mcts_engine)
 
     print("\nMatch 2: Alpha-Beta Pruning vs Q-Learning")
     play_game(alpha_beta_engine, q_learning_engine)
 
-    print("\nMatch 3: MCTS vs Q-Learning")
-    play_game(mcts_engine, q_learning_engine)
+    # print("\nMatch 3: MCTS vs Q-Learning")
+    # play_game(mcts_engine, q_learning_engine)

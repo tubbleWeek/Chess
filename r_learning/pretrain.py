@@ -4,11 +4,11 @@ import torch
 from q_learn import ChessQNetwork, board_to_tensor
 
 # Pretraining parameters
-PRETRAIN_EPOCHS = 100
+PRETRAIN_EPOCHS = 10
 LEARNING_RATE = 1e-3
 DISCOUNT_FACTOR = 0.99
-DEVICE =  'cuda'
-#  if torch.cuda.is_available() else "cpu"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Initialize Q-network and optimizer
 pretrain_q_network = ChessQNetwork().to(DEVICE)
 optimizer = torch.optim.Adam(pretrain_q_network.parameters(), lr=LEARNING_RATE)
@@ -28,7 +28,9 @@ def pretrain_model(dataset_path):
         print(f"Epoch {epoch + 1}/{PRETRAIN_EPOCHS}")
         total_loss = 0
 
-        for _, game in data.iterrows():
+        for idx, game in data.iterrows():
+            if idx == 1000:
+                break
             try:
                 moves = game["moves"].split()  # Get the sequence of shorthand moves
                 winner = game["winner"]  # "white", "black", or "draw"
