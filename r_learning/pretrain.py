@@ -6,6 +6,7 @@ from q_learn import ChessQNetwork, board_to_tensor
 # datasets
 OPENING_DATASET = "./chess_data/filtered_openings.csv"
 PUZZLE_DATASET = "./chess_data/filtered_chess_puzzle.csv"
+GAME_DATASET = "./chess_data/filtered_games.csv"
 
 # Pretraining parameters
 PRETRAIN_EPOCHS = 10
@@ -85,6 +86,66 @@ def train_model_openings(dataset_path):
     data = pd.read_csv(dataset_path)
     print("Dataset loaded. Number of games:", len(data))
 
+    #pretrained model
+    pretrain_q_network = ChessQNetwork().to(DEVICE)
+    pretrain_q_network.load_state_dict(torch.load("puzzle_model_complete.pth"))
+
+
+    for epoch in range(PRETRAIN_EPOCHS):
+        total_loss = 0  # Initialize total loss for the epoch
+        update_count = 0
+        for idx, game in data.iterrows():
+            try:
+                # Initialize board from FEN
+                board = chess.Board()
+                moves = game["uci_moves"].split()
+                reward = 1  # Reward for solving the puzzle
+
+                states, next_states, rewards = [], [], []
+                for i, move in enumerate(moves):
+                    if board.is_game_over():
+                        break
+
+                    # Record the state and rewards
+                    states.append(board_to_tensor(board).to(DEVICE))
+                    rewards.append(reward)  # Assume opening is always optimal
+
+                    # Push the move to the board
+                    board.push_uci(move)
+                    next_states.append(board_to_tensor(board).to(DEVICE))
+
+                # Train the Q-network on this game's data
+                if len(states) > 0:
+                    state_batch = torch.stack(states).to(DEVICE)
+                    next_state_batch = torch.stack(next_states).to(DEVICE)
+                    reward_batch = torch.tensor(rewards, dtype=torch.float32).to(DEVICE)
+
+                    # Compute Q-values and targets
+                    with torch.no_grad():
+                        target_q_values = reward_batch
+                        next_q_values = pretrain_q_network(next_state_batch).squeeze()
+                        target_q_values[:-1] += DISCOUNT_FACTOR * next_q_values[:-1]
+
+                    predicted_q_values = pretrain_q_network(state_batch).squeeze()
+
+                    # Compute loss and backpropagate
+                    loss = loss_fn(predicted_q_values, target_q_values)
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+
+                    total_loss += loss.item()
+                    update_count += len(states)
+
+            except Exception as e:
+                print(f"Skipping game at index {idx} due to error: {e}")
+                
+        if (epoch + 1) % 5 == 0 or epoch == PRETRAIN_EPOCHS - 1:
+            torch.save(pretrain_q_network.state_dict(), f"opening_model_epoch_{epoch+1}.pth")
+        print(f"Epoch {epoch + 1} completed. Average loss: {total_loss / len(data):.4f}")
+    torch.save(pretrain_q_network.state_dict(), "opening_learning_model.pth")
+    print("Model saved as 'opening_learning_model.pth'")
+
 def train_model_games(dataset_path):
     """
     Pretrain the Q-learning model using a chess dataset.
@@ -112,7 +173,7 @@ def train_model_games(dataset_path):
                         break
 
                     # Convert shorthand to UCI using `parse_san`
-                    uci_move = board.parse_san(move).uci()
+                    uci_move = move
 
                     # Record the state before the move
                     states.append(board_to_tensor(board).to(DEVICE))
