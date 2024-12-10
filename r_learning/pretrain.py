@@ -222,5 +222,6 @@ def train_model_games(dataset_path):
 
 if __name__ == "__main__":
     dataset_path = "./chess_data/games.csv"
-    train_model_puzzle(PUZZLE_DATASET)
+    # train_model_puzzle(PUZZLE_DATASET)
+    train_model_openings(OPENING_DATASET)
     # train_model_games(dataset_path)
