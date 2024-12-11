@@ -15,8 +15,8 @@ class ChessQNetwork(nn.Module):
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, 1024)
         self.fc3 = nn.Linear(1024, 512)
-        self.fc4 = nn.Linear(128, 32)
-        self.fc5 = nn.Linear(32, output_size)
+        self.fc4 = nn.Linear(512, 128)
+        self.fc5 = nn.Linear(128, output_size)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
