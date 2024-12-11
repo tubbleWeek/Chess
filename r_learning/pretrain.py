@@ -9,7 +9,7 @@ import tqdm
 
 # datasets
 OPENING_DATASET = "./chess_data/filtered_openings.csv"
-PUZZLE_DATASET = "./chess_data/filtered_chess_puzzle.csv"
+PUZZLE_DATASET = "./chess_data/filtered_chess_puzzle_large.csv"
 GAME_DATASET = "./chess_data/filtered_games.csv"
 
 # Pretraining parameters
@@ -383,7 +383,7 @@ def train_model_random():
 
 if __name__ == "__main__":
     dataset_path = "./chess_data/games.csv"
-    # train_model_puzzle(PUZZLE_DATASET)
-    # train_model_openings(OPENING_DATASET)
+    train_model_puzzle(PUZZLE_DATASET)
+    train_model_openings(OPENING_DATASET)
     # train_model_games(GAME_DATASET)
-    train_model_random()
+    # train_model_random()
