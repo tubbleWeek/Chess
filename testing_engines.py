@@ -15,9 +15,72 @@ logging.basicConfig(
 )
 def evaluate_board(board):
     """
-    Simple evaluation function. Assigns material points.
+    Combined heuristic function for evaluating a chess position.
+    :param board: chess.Board object representing the current position.
+    :return: Evaluation score (positive for White's advantage, negative for Black's).
     """
-    
+    # Material values
+    piece_values = {
+        chess.PAWN: 1,
+        chess.KNIGHT: 3,
+        chess.BISHOP: 3,
+        chess.ROOK: 5,
+        chess.QUEEN: 9,
+        chess.KING: 0  # King value is handled separately (e.g., king safety).
+    }
+
+    # Piece-square tables (simplified example for pawns)
+    PAWN_TABLE = [
+        0,  0,  0,  0,  0,  0,  0,  0,
+        5, 10, 10,-20,-20, 10, 10,  5,
+        5, -5,-10,  0,  0,-10, -5,  5,
+        0,  0,  0, 20, 20,  0,  0,  0,
+        5,  5, 10, 25, 25, 10,  5,  5,
+       10, 10, 20, 30, 30, 20, 10, 10,
+       50, 50, 50, 50, 50, 50, 50, 50,
+        0,  0,  0,  0,  0,  0,  0,  0
+    ]
+
+    # Initialize score
+    score = 0
+
+    # Material evaluation
+    for piece_type in piece_values.keys():
+        # Count pieces for both sides
+        white_pieces = len(board.pieces(piece_type, chess.WHITE))
+        black_pieces = len(board.pieces(piece_type, chess.BLACK))
+        score += piece_values[piece_type] * (white_pieces - black_pieces)
+
+    # Positional evaluation (piece-square tables for pawns as an example)
+    for square in board.pieces(chess.PAWN, chess.WHITE):
+        score += PAWN_TABLE[square]
+    for square in board.pieces(chess.PAWN, chess.BLACK):
+        score -= PAWN_TABLE[chess.square_mirror(square)]  # Mirror for Black's pawns
+
+    # Mobility evaluation
+    white_mobility = len(list(board.legal_moves))
+    board.turn = not board.turn  # Switch to Black
+    black_mobility = len(list(board.legal_moves))
+    board.turn = not board.turn  # Switch back to White
+    score += 0.1 * (white_mobility - black_mobility)
+
+    # King safety (penalize exposed kings)
+    if not board.is_checkmate():
+        white_king_safety = len(board.attackers(chess.BLACK, board.king(chess.WHITE)))
+        black_king_safety = len(board.attackers(chess.WHITE, board.king(chess.BLACK)))
+        score -= 0.3 * white_king_safety
+        score += 0.3 * black_king_safety
+
+    # Passed pawns (bonus for pawns that can promote without enemy pawns blocking)
+    for square in board.pieces(chess.PAWN, chess.WHITE):
+        if not any(board.pieces(chess.PAWN, chess.BLACK) & chess.SquareSet.ray(square, chess.H8)):
+            score += 0.5
+    for square in board.pieces(chess.PAWN, chess.BLACK):
+        if not any(board.pieces(chess.PAWN, chess.WHITE) & chess.SquareSet.ray(square, chess.A1)):
+            score -= 0.5
+
+    return score
+
 
 def evaluate(board):
     """Simple evaluation function for alpha-beta pruning."""
@@ -57,14 +120,14 @@ def play_game(engine1, engine2, max_moves=100):
     # display(SVG(chess.svg.board(board)))  # Final board state
     # print(board)
     print(f"Game Over. Result: {board.result()}")
-    logging.info(f"Final Board {board}")
+    logging.info(f"Final Board {board.board_fen()}")
     logging.info(f"Game Over. Result: {board.result()}")
     return board.result()
 
 
 def alpha_beta_engine(board):
     """Alpha-beta pruning engine."""
-    _, best_move = stockFish.alpha_beta_pruning(board, depth=3, alpha=float('-inf'), beta=float('inf'), maximizing_player=board.turn, evaluate=evaluate)
+    _, best_move = stockFish.alpha_beta_pruning(board, depth=3, alpha=float('-inf'), beta=float('inf'), maximizing_player=board.turn, evaluate=evaluate_board)
     return best_move
 
 
@@ -76,8 +139,8 @@ def mcts_engine(board):
 
 def q_learning_engine(board):
     """Q-learning engine."""
-    model = torch.load('./r_learning/holder/q_learning_model_cuda.pth')
-    return model.select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+    # model = torch.load('./r_learning/q_learning_model_final.pth')
+    return select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
 
 
 if __name__ == "__main__":
@@ -85,8 +148,10 @@ if __name__ == "__main__":
     # print("Match 1: Alpha-Beta Pruning vs MCTS")
     # play_game(alpha_beta_engine, mcts_engine)
 
-    print("\nMatch 2: Alpha-Beta Pruning vs Q-Learning")
-    play_game(alpha_beta_engine, q_learning_engine)
+    # print("\nMatch 2: Alpha-Beta Pruning vs Q-Learning")
+    # logging.info("Match 2: Alpha-Beta Pruning vs Q-Learning")
+    # play_game(alpha_beta_engine, q_learning_engine)
+    play_game(q_learning_engine, q_learning_engine)
 
     # print("\nMatch 3: MCTS vs Q-Learning")
     # play_game(mcts_engine, q_learning_engine)

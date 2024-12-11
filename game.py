@@ -1,6 +1,8 @@
 import chess
 import chess.engine
 from alpha_beta.stockFish import alpha_beta_pruning
+import torch
+from r_learning.q_learn import select_move, q_network, board_to_tensor
 
 # new evalutation function for alpha beta pruning
 def evaluate(board):
@@ -29,6 +31,7 @@ def evaluate_board(board):
 
 def play_human_vs_ai():
     board = chess.Board()
+    # model = torch.load('./r_learning/q_learning_model_final.pth')
     while not board.is_game_over():
         print(board)
         if board.turn:
@@ -40,7 +43,8 @@ def play_human_vs_ai():
                 print("Invalid move. Try again.")
         else:
             # AI plays
-            _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), maximizing_player=board.turn, evaluate=evaluate)
+            # _, ai_move = alpha_beta_pruning(board, 3, float('-inf'), float('inf'), maximizing_player=board.turn, evaluate=evaluate)
+            ai_move = select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
             board.push(ai_move)
             print(f"AI plays: {ai_move}")
     print("Game Over!")

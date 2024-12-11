@@ -14,12 +14,16 @@ class ChessQNetwork(nn.Module):
         super(ChessQNetwork, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, 512)
-        self.fc3 = nn.Linear(512, output_size)
+        self.fc3 = nn.Linear(512, 128)
+        self.fc4 = nn.Linear(128, 32)
+        self.fc5 = nn.Linear(32, output_size)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.fc3(x)  # Output Q-value for the state
+        x = torch.relu(self.fc3(x))
+        x = torch.relu(self.fc4(x))
+        x = self.fc5(x)  # Output Q-value for the state
         return x
 
 
@@ -56,27 +60,29 @@ def board_to_tensor(board: chess.Board):
 # q_network = ChessQNetwork()
 # optimizer = optim.Adam(q_network.parameters(), lr=LEARNING_RATE)
 # memory = deque(maxlen=MEMORY_SIZE)
-
-
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+q_network = ChessQNetwork().to(DEVICE)
+q_network.load_state_dict(torch.load("./r_learning/q_learning_model_final.pth"))
 # # Helper functions for Q-learning
-# def select_move(board, epsilon):
-#     """Select a move using an epsilon-greedy policy."""
-#     legal_moves = list(board.legal_moves)
-#     if random.random() < epsilon:
-#         # Explore: Choose a random move
-#         return random.choice(legal_moves)
-#     else:
-#         # Exploit: Choose the best move based on Q-value
-#         best_move = None
-#         best_q_value = -float("inf")
-#         for move in legal_moves:
-#             board.push(move)
-#             q_value = q_network(board_to_tensor(board)).item()
-#             board.pop()
-#             if q_value > best_q_value:
-#                 best_q_value = q_value
-#                 best_move = move
-#         return best_move
+def select_move(board, epsilon):
+    """Select a move using an epsilon-greedy policy."""
+    legal_moves = list(board.legal_moves)
+    if random.random() < epsilon:
+        # Explore: Choose a random move
+        return random.choice(legal_moves)
+    else:
+        # Exploit: Choose the best move based on Q-value
+        best_move = None
+        best_q_value = -float("inf")
+        for move in legal_moves:
+            board.push(move)
+            # print(q_network)
+            q_value = q_network(board_to_tensor(board).to(DEVICE)).item()
+            board.pop()
+            if q_value > best_q_value:
+                best_q_value = q_value
+                best_move = move
+        return best_move
 
 
 # def train_q_network(batch):

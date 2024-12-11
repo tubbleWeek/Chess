@@ -1,7 +1,11 @@
+import random
 import pandas as pd
 import chess
 import torch
 from q_learn import ChessQNetwork, board_to_tensor
+from collections import deque
+import tqdm
+
 
 # datasets
 OPENING_DATASET = "./chess_data/filtered_openings.csv"
@@ -293,8 +297,93 @@ def train_model_games(dataset_path):
     torch.save(pretrain_q_network.state_dict(), "q_learning_model.pth")
     print("Model saved as 'q_learning_model.pth'")
 
+
+def train_model_random():
+    EPSILON_START = 1.0  # Exploration probability
+    EPSILON_END = 0.1
+    EPSILON_DECAY = 0.999
+    BATCH_SIZE = 64
+    MEMORY_SIZE = 10000
+    NUM_EPISODES = 5000
+    memory = deque(maxlen=MEMORY_SIZE)
+    pretrain_q_network = ChessQNetwork().to(DEVICE)
+    pretrain_q_network.load_state_dict(torch.load("q_learning_model.pth"))
+    def train_q_network(batch):
+        """Train the Q-network using a batch of experiences."""
+        states, actions, rewards, next_states, dones = zip(*batch)
+
+        states = torch.stack(states).to(DEVICE)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(DEVICE)
+        next_states = torch.stack(next_states).to(DEVICE)
+        dones = torch.tensor(dones, dtype=torch.float32).to(DEVICE)
+
+        # Compute Q(s, a) and target Q-values
+        q_values = pretrain_q_network(states).squeeze()
+        with torch.no_grad():
+            next_q_values = pretrain_q_network(next_states).squeeze()
+            target_q_values = rewards + (1 - dones) * DISCOUNT_FACTOR * next_q_values
+
+        # Compute loss and backpropagate
+        loss = torch.nn.MSELoss()(q_values, target_q_values)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    def select_move(board, epsilon):
+        """Select a move using an epsilon-greedy policy."""
+        legal_moves = list(board.legal_moves)
+        if random.random() < epsilon:
+            # Explore: Choose a random move
+            return random.choice(legal_moves)
+        else:
+            # Exploit: Choose the best move based on Q-value
+            best_move = None
+            best_q_value = -float("inf")
+            for move in legal_moves:
+                board.push(move)
+                q_value = pretrain_q_network(board_to_tensor(board).to(DEVICE)).item()
+                board.pop()
+                if q_value > best_q_value:
+                    best_q_value = q_value
+                    best_move = move
+            return best_move
+    epsilon = EPSILON_START
+    for episode in tqdm.tqdm(range(NUM_EPISODES)):
+        board = chess.Board()
+        state = board_to_tensor(board).to(DEVICE)
+        done = False
+
+        while not done:
+            # Select a move
+            move = select_move(board, epsilon)
+            board.push(move)
+
+            # Observe reward and next state
+            reward = 0
+            if board.is_checkmate():
+                reward = 1 if board.turn == chess.BLACK else -1  # Current player loses
+            elif board.is_stalemate() or board.is_insufficient_material() or board.is_seventyfive_moves():
+                reward = 0  # Draw
+            next_state = board_to_tensor(board).to(DEVICE)
+            done = board.is_game_over()
+
+            # Store experience in memory
+            memory.append((state, move, reward, next_state, done))
+
+            # Sample a batch and train
+            if len(memory) >= BATCH_SIZE:
+                batch = random.sample(memory, BATCH_SIZE)
+                train_q_network(batch)
+
+            state = next_state
+
+        # Decay epsilon
+        epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
+    torch.save(pretrain_q_network.state_dict(), "q_learning_model_final.pth")
+    print("Model saved as 'q_learning_model_final.pth'")
+
 if __name__ == "__main__":
     dataset_path = "./chess_data/games.csv"
     # train_model_puzzle(PUZZLE_DATASET)
     # train_model_openings(OPENING_DATASET)
-    train_model_games(GAME_DATASET)
+    # train_model_games(GAME_DATASET)
+    train_model_random()
