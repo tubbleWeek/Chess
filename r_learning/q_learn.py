@@ -10,11 +10,11 @@ import tqdm
 
 # Define the neural network for Q-learning
 class ChessQNetwork(nn.Module):
-    def __init__(self, input_size=773, hidden_size=1024, output_size=1):
+    def __init__(self, input_size=773, hidden_size=2048, output_size=1):
         super(ChessQNetwork, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, 512)
-        self.fc3 = nn.Linear(512, 128)
+        self.fc2 = nn.Linear(hidden_size, 1024)
+        self.fc3 = nn.Linear(1024, 512)
         self.fc4 = nn.Linear(128, 32)
         self.fc5 = nn.Linear(32, output_size)
 
