@@ -6,6 +6,7 @@ from alpha_beta import stockFish
 import logging
 from monte_carlo import mtcs
 # from r_learning.q_learn import select_move, q_network, board_to_tensor
+import r_learning.q_learn as q_learn
 
 logging.basicConfig(
     filename="chess_game_log.txt",
@@ -131,11 +132,13 @@ def mcts_engine(board):
     root = mtcs.Node(board)
     return mtcs.mcts(root, num_simulations=1000)
 
+model = q_learn.q_learning_engine("./r_learning/models/puzzle_model_1.pth")
 
-# def q_learning_engine(board):
-#     """Q-learning engine."""
-#     # model = torch.load('./r_learning/q_learning_model_final.pth')
-#     return select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+def q_learning_engine(board):
+    """Q-learning engine."""
+    # model = torch.load('./r_learning/q_learning_model_final.pth')
+    return model.select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+
 
 
 if __name__ == "__main__":
@@ -151,14 +154,34 @@ if __name__ == "__main__":
     # print("\nMatch 3: MCTS vs Q-Learning")
     # play_game(mcts_engine, q_learning_engine)
 
-    logging.info(f"MCTS vs Alpha-Beta")
+    # logging.info(f"MCTS vs Alpha-Beta")
+    # logging.info(f"Games Played: {NUM_GAMES}")
+
+    # logging.info("MCTS as white and AB as black")
+    # for i in range(0, 24):
+    #     play_game(mcts_engine, alpha_beta_engine)
+
+    # logging.info("MCTS as black and AB as white")
+    # for i in range(24,NUM_GAMES):
+    #     play_game(alpha_beta_engine, mcts_engine)
+    # logging.info(f"Q_Learn vs Alpha-Beta")
+    # logging.info(f"Games Played: {NUM_GAMES}")
+
+    # logging.info("Q_Learn as black and AB as white")
+    # for i in range(0, 24):
+    #     play_game(q_learning_engine, alpha_beta_engine)
+
+    # logging.info("Q_Learn as white and AB as black")
+    # for i in range(24,NUM_GAMES):
+    #     play_game(alpha_beta_engine, q_learning_engine)
+
+    logging.info(f"Q_Learn vs MCTS")
     logging.info(f"Games Played: {NUM_GAMES}")
 
-    logging.info("MCTS as white and AB as black")
+    logging.info("Q_Learn as white and MCTS as black")
     for i in range(0, 24):
-        play_game(mcts_engine, alpha_beta_engine)
+        play_game(q_learning_engine, mcts_engine)
 
-    logging.info("MCTS as white and AB as black")
+    logging.info("Q_Learn as balck and MCTS as black")
     for i in range(24,NUM_GAMES):
-        play_game(alpha_beta_engine, mcts_engine)
-
+        play_game(mcts_engine, q_learning_engine)
