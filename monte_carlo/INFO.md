@@ -1,0 +1,1 @@
+This is a chess agent created using monte cralo tree search. Instead of random playouts I used a heuristic playout, and to make code faster I use threads to parallelize the process.

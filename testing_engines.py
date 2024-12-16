@@ -1,11 +1,8 @@
 import chess
 import importlib
-import torch
-# from IPython.display import display, SVG
 from alpha_beta import stockFish
 import logging
 from monte_carlo import mtcs
-# from r_learning.q_learn import select_move, q_network, board_to_tensor
 import r_learning.q_learn as q_learn
 
 logging.basicConfig(
