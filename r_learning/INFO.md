@@ -23,3 +23,7 @@ Epoch 7 completed. Average loss: 31.6136
 Epoch 8 completed. Average loss: 31.6136
 Epoch 9 completed. Average loss: 31.6136
 did not learn from the games 
+
+Iteration 3: "puzzle_model_1.pth"
+input -> 2048 -> 1024 -> 512 -> 128 -> output
+"puzzle_model_1.pth" trained on 1000000 puzzles

@@ -1,0 +1,87 @@
+2024-12-14 13:01:40,603 - MCTS vs Alpha-Beta
+2024-12-14 13:01:40,603 - Games Played: 50
+2024-12-14 13:01:40,603 - MCTS as white and AB as black
+2024-12-14 13:02:20,955 - Engine 1 plays: b1c3
+2024-12-14 13:02:34,243 - Engine 2 plays: e7e5
+2024-12-14 13:03:22,154 - Engine 1 plays: a2a3
+2024-12-14 13:03:50,992 - Engine 2 plays: d7d5
+2024-12-14 13:04:42,643 - Engine 1 plays: a1b1
+2024-12-14 13:04:53,881 - Engine 2 plays: d8h4
+2024-12-14 13:05:46,961 - Engine 1 plays: g1f3
+2024-12-14 13:06:05,589 - Engine 2 plays: d5d4
+2024-12-14 13:06:57,370 - Engine 1 plays: h1g1
+2024-12-14 13:07:09,522 - Engine 2 plays: h4f2
+2024-12-14 13:07:54,243 - Engine 1 plays: e1f2
+2024-12-14 13:08:02,361 - Engine 2 plays: g8f6
+2024-12-14 13:08:48,955 - Engine 1 plays: c3a2
+2024-12-14 13:08:55,413 - Engine 2 plays: f8a3
+2024-12-14 13:09:40,398 - Engine 1 plays: d1e1
+2024-12-14 13:09:46,247 - Engine 2 plays: f6e4
+2024-12-14 13:09:46,249 - Final Board rnb1k2r/ppp2ppp/8/4p3/3pn3/b4N2/NPPPPKPP/1RB1QBR1
+2024-12-14 13:09:46,249 - Game Over. Result: 0-1
+2024-12-14 13:10:29,375 - Engine 1 plays: g2g4
+2024-12-14 13:10:39,605 - Engine 2 plays: e7e5
+2024-12-14 13:11:28,832 - Engine 1 plays: f2f4
+2024-12-14 13:11:34,251 - Engine 2 plays: d8h4
+2024-12-14 13:11:34,251 - Final Board rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR
+2024-12-14 13:11:34,251 - Game Over. Result: 0-1
+2024-12-14 13:12:17,634 - Engine 1 plays: g2g4
+2024-12-14 13:12:28,019 - Engine 2 plays: e7e5
+2024-12-14 13:13:16,544 - Engine 1 plays: f2f4
+2024-12-14 13:13:21,663 - Engine 2 plays: d8h4
+2024-12-14 13:13:21,663 - Final Board rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR
+2024-12-14 13:13:21,663 - Game Over. Result: 0-1
+2024-12-14 13:14:04,363 - Engine 1 plays: c2c3
+2024-12-14 13:14:15,504 - Engine 2 plays: e7e5
+2024-12-14 13:15:02,708 - Engine 1 plays: g2g4
+2024-12-14 13:15:34,442 - Engine 2 plays: d7d5
+2024-12-14 13:16:26,564 - Engine 1 plays: f2f3
+2024-12-14 13:16:39,625 - Engine 2 plays: d8h4
+2024-12-14 13:16:39,625 - Final Board rnb1kbnr/ppp2ppp/8/3pp3/6Pq/2P2P2/PP1PP2P/RNBQKBNR
+2024-12-14 13:16:39,625 - Game Over. Result: 0-1
+2024-12-14 13:17:22,999 - Engine 1 plays: g2g3
+2024-12-14 13:17:33,629 - Engine 2 plays: e7e5
+2024-12-14 13:18:21,640 - Engine 1 plays: b1a3
+2024-12-14 13:18:50,220 - Engine 2 plays: d7d5
+2024-12-14 13:19:38,093 - Engine 1 plays: f2f4
+2024-12-14 13:20:05,184 - Engine 2 plays: e5e4
+2024-12-14 13:20:55,626 - Engine 1 plays: g3g4
+2024-12-14 13:21:08,826 - Engine 2 plays: d8h4
+2024-12-14 13:21:08,827 - Final Board rnb1kbnr/ppp2ppp/8/3p4/4pPPq/N7/PPPPP2P/R1BQKBNR
+2024-12-14 13:21:08,827 - Game Over. Result: 0-1
+2024-12-14 13:21:49,608 - Engine 1 plays: c2c3
+2024-12-14 13:22:00,667 - Engine 2 plays: e7e5
+2024-12-14 13:22:47,755 - Engine 1 plays: g2g3
+2024-12-14 13:23:22,885 - Engine 2 plays: d7d5
+2024-12-14 13:24:13,346 - Engine 1 plays: f1h3
+2024-12-14 13:24:51,202 - Engine 2 plays: d8f6
+2024-12-14 13:25:38,832 - Engine 1 plays: h3c8
+2024-12-14 13:25:47,712 - Engine 2 plays: f6f2
+2024-12-14 13:26:27,547 - Engine 1 plays: e1f2
+2024-12-14 13:26:34,995 - Engine 2 plays: g8f6
+2024-12-14 13:27:15,713 - Engine 1 plays: d1f1
+2024-12-14 13:27:32,671 - Engine 2 plays: e5e4
+2024-12-14 13:28:12,295 - Engine 1 plays: c8h3
+2024-12-14 13:28:18,523 - Engine 2 plays: f8c5
+2024-12-14 13:29:00,074 - Engine 1 plays: f2e1
+2024-12-14 13:29:33,200 - Engine 2 plays: c5g1
+2024-12-14 13:30:15,220 - Engine 1 plays: f1f2
+2024-12-14 13:30:31,177 - Engine 2 plays: g1f2
+2024-12-14 13:31:07,952 - Engine 1 plays: e1f2
+2024-12-14 13:31:19,005 - Engine 2 plays: h8f8
+2024-12-14 13:31:52,830 - Engine 1 plays: h1f1
+2024-12-14 13:32:02,762 - Engine 2 plays: h7h6
+2024-12-14 13:32:39,886 - Engine 1 plays: g3g4
+2024-12-14 13:32:51,470 - Engine 2 plays: e8d7
+2024-12-14 13:33:29,389 - Engine 1 plays: b2b3
+2024-12-14 13:33:51,320 - Engine 2 plays: d7c8
+2024-12-14 13:34:29,161 - Engine 1 plays: h3g2
+2024-12-14 13:34:37,156 - Engine 2 plays: f6g4
+2024-12-14 13:35:12,343 - Engine 1 plays: f2e1
+2024-12-14 13:35:17,556 - Engine 2 plays: g4h2
+2024-12-14 13:35:53,423 - Engine 1 plays: f1f7
+2024-12-14 13:35:56,109 - Engine 2 plays: f8f7
+2024-12-14 13:36:30,054 - Engine 1 plays: g2e4
+2024-12-14 13:36:36,431 - Engine 2 plays: f7f1
+2024-12-14 13:36:36,431 - Final Board rnk5/ppp3p1/7p/3p4/4B3/1PP5/P2PP2n/RNB1Kr2
+2024-12-14 13:36:36,431 - Game Over. Result: 0-1

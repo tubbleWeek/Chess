@@ -1,11 +1,9 @@
 import chess
 import importlib
-import torch
-# from IPython.display import display, SVG
 from alpha_beta import stockFish
 import logging
 from monte_carlo import mtcs
-from r_learning.q_learn import select_move, q_network, board_to_tensor
+import r_learning.q_learn as q_learn
 
 logging.basicConfig(
     filename="chess_game_log.txt",
@@ -13,6 +11,7 @@ logging.basicConfig(
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
 )
+NUM_GAMES = 50
 def evaluate_board(board):
     """
     Combined heuristic function for evaluating a chess position.
@@ -82,13 +81,6 @@ def evaluate_board(board):
     return score
 
 
-def evaluate(board):
-    """Simple evaluation function for alpha-beta pruning."""
-    if board.is_checkmate():
-        return 1000 if board.turn == chess.BLACK else -1000
-    return len(list(board.legal_moves)) if board.turn == chess.WHITE else -len(list(board.legal_moves))
-
-
 def play_game(engine1, engine2, max_moves=100):
     """
     Play a game between two engines.
@@ -102,7 +94,7 @@ def play_game(engine1, engine2, max_moves=100):
     turn = 0
 
     print("Starting new game...")
-    logging.info("Starting new game...")
+    # logging.info("Starting new game...")
     while not board.is_game_over() and board.fullmove_number <= max_moves:
         # print(board)
         # display(SVG(chess.svg.board(board)))  # Final board state
@@ -115,6 +107,7 @@ def play_game(engine1, engine2, max_moves=100):
             break
 
         print(f"Engine {'1' if turn % 2 == 0 else '2'} plays: {move}")
+        logging.info(f"Engine {'1' if turn % 2 == 0 else '2'} plays: {move}")
         board.push(move)
         turn += 1
     # display(SVG(chess.svg.board(board)))  # Final board state
@@ -127,20 +120,22 @@ def play_game(engine1, engine2, max_moves=100):
 
 def alpha_beta_engine(board):
     """Alpha-beta pruning engine."""
-    _, best_move = stockFish.alpha_beta_pruning(board, depth=3, alpha=float('-inf'), beta=float('inf'), maximizing_player=board.turn, evaluate=evaluate_board)
+    _, best_move = stockFish.alpha_beta_pruning(board, depth=4, alpha=float('-inf'), beta=float('inf'), maximizing_player=board.turn, evaluate=evaluate_board)
     return best_move
 
 
 def mcts_engine(board):
     """MCTS engine."""
     root = mtcs.Node(board)
-    return mtcs.mcts(root, num_simulations=500)
+    return mtcs.mcts(root, num_simulations=1000)
 
+model = q_learn.q_learning_engine("./r_learning/models/puzzle_model_1.pth")
 
 def q_learning_engine(board):
     """Q-learning engine."""
     # model = torch.load('./r_learning/q_learning_model_final.pth')
-    return select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+    return model.select_move(board, epsilon=0)  # Use greedy policy (epsilon = 0) for evaluation
+
 
 
 if __name__ == "__main__":
@@ -151,7 +146,39 @@ if __name__ == "__main__":
     # print("\nMatch 2: Alpha-Beta Pruning vs Q-Learning")
     # logging.info("Match 2: Alpha-Beta Pruning vs Q-Learning")
     # play_game(alpha_beta_engine, q_learning_engine)
-    play_game(q_learning_engine, q_learning_engine)
+    # play_game(q_learning_engine, q_learning_engine)
 
     # print("\nMatch 3: MCTS vs Q-Learning")
     # play_game(mcts_engine, q_learning_engine)
+
+    # logging.info(f"MCTS vs Alpha-Beta")
+    # logging.info(f"Games Played: {NUM_GAMES}")
+
+    # logging.info("MCTS as white and AB as black")
+    # for i in range(0, 24):
+    #     play_game(mcts_engine, alpha_beta_engine)
+
+    # logging.info("MCTS as black and AB as white")
+    # for i in range(24,NUM_GAMES):
+    #     play_game(alpha_beta_engine, mcts_engine)
+    # logging.info(f"Q_Learn vs Alpha-Beta")
+    # logging.info(f"Games Played: {NUM_GAMES}")
+
+    # logging.info("Q_Learn as black and AB as white")
+    # for i in range(0, 24):
+    #     play_game(q_learning_engine, alpha_beta_engine)
+
+    # logging.info("Q_Learn as white and AB as black")
+    # for i in range(24,NUM_GAMES):
+    #     play_game(alpha_beta_engine, q_learning_engine)
+
+    logging.info(f"Q_Learn vs MCTS")
+    logging.info(f"Games Played: {NUM_GAMES}")
+
+    logging.info("Q_Learn as white and MCTS as black")
+    for i in range(0, 24):
+        play_game(q_learning_engine, mcts_engine)
+
+    logging.info("Q_Learn as balck and MCTS as black")
+    for i in range(24,NUM_GAMES):
+        play_game(mcts_engine, q_learning_engine)
