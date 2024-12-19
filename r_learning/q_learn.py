@@ -53,26 +53,6 @@ class q_learning_engine():
         self.q_network = ChessQNetwork().to(DEVICE)
         self.q_network.load_state_dict(torch.load(engine_path, map_location=DEVICE))
 
-    # # Helper functions for Q-learning
-    # def select_move(self,board, epsilon):
-    #     """Select a move using an epsilon-greedy policy."""
-    #     legal_moves = list(board.legal_moves)
-    #     if random.random() < epsilon:
-    #         # Explore: Choose a random move
-    #         return random.choice(legal_moves)
-    #     else:
-    #         # Exploit: Choose the best move based on Q-value
-    #         best_move = None
-    #         best_q_value = -float("inf")
-    #         for move in legal_moves:
-    #             board.push(move)
-    #             # print(q_network)
-    #             q_value = self.q_network(board_to_tensor(board).to(DEVICE)).item()
-    #             board.pop()
-    #             if q_value > best_q_value:
-    #                 best_q_value = q_value
-    #                 best_move = move
-    #         return best_move
     def select_move(self, board, epsilon, temperature=1.0):
         """Select a move using a softmax policy for better exploration-exploitation balance."""
         legal_moves = list(board.legal_moves)
