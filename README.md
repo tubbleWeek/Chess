@@ -26,7 +26,7 @@ Based on our tests, we found the following performance ranking for the AI agents
 
 ### Play Against the Alpha-Beta AI
 
-To play against the **Alpha-Beta Pruning** AI, run the `game.py` script. You can input moves using either **shorthand** notation (e.g., `e2e4`) or the **UCI** (Universal Chess Interface) format (e.g., `e2 e4`).
+To play against the **Alpha-Beta Pruning** AI, run the `game.py` script. You can input moves using either **shorthand** notation (e.g., `e4`) or the **UCI** (Universal Chess Interface) format (e.g., `e2e4`).
 
 ```bash
 python game.py
